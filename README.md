@@ -1,6 +1,9 @@
 # Diffusion
 
-复现《Denoising Diffusion Probabilistic Models》，基于官方tensorflow版本https://github.com/hojonathanho/diffusion和非官方pytorch实现https://github.com/zoubohao/DenoisingDiffusionProbabilityModel-ddpm-。
+复现论文《Denoising Diffusion Probabilistic Models》。基于
+
+* 官方tensorflow版本https://github.com/hojonathanho/diffusion。
+* 非官方pytorch实现https://github.com/zoubohao/DenoisingDiffusionProbabilityModel-ddpm-。
 
 
 
