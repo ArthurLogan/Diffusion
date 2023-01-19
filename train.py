@@ -1,5 +1,4 @@
 import argparse
-from tqdm import tqdm
 from loader import load_dataset
 
 def parse():
