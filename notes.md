@@ -197,11 +197,13 @@ J&=\mathbb{E}_q[\log q_\sigma(x_{1:T}|x_0)-\log p_\theta(x_{0:T})]\\
 &=\mathbb{E}_q\left[\log q_\sigma(x_T|x_0)+\sum_{t=2}^T\log q_\sigma(x_{t-1}|x_t,x_0)-\sum_{t=1}^T\log p_\theta^{(t)}(x_{t-1}|x_t)-\log p_\theta(x_T)\right]
 \end{align*}
 $$
+
 可以证明该优化目标和DDPM的优化目标相差常数，一组 $\sigma$ 参数对应一组 $\gamma$ 参数。如果误差函数 $\epsilon_{\theta}$ 在时间维度不共享，则DDPM中的优化目标等价于 $L_{0:T}$ 每项的最优和，在该条件下如下式子成立。
 
 $$
 J_\sigma\equiv L_\gamma \equiv L_1
 $$
+
 以 $L_1$ 为优化目标的模型同样学习了以非马尔可夫前向过程属性，因此可以通过修改 $\sigma$ 去优化前向过程。 
 
 **采样过程**：和DDPM相同，作者通过当前 $x_t$ 预测 $x_0$ 并代入 $q_\sigma$ 公式，通过重参数计算 $x_{t-1}$ 。
@@ -216,8 +218,8 @@ $$
 x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+
 $$
 
-另一种特殊情况，当 $\sigma=0$ 时，采样过程退化成确定过程，此时采样过程如下。
+另一种特殊情况，当 $\sigma=0$ 时，采样过程退化成确定过程，此时采样过程如下，这种逆向过程相当于隐式生成模型，因而称为DDIM。
 
 $$
-x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sqrt{\alpha_{t-1}}\left(\sqrt{\frac{1-\alpha_{t-1}}{\alpha_{t-1}}}-\sqrt{\frac{1-\alpha_t}{\alpha_t}}\right)
+x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sqrt{\alpha_{t-1}}\left(\sqrt{\frac{1-\alpha_{t-1}}{\alpha_{t-1}}}-\sqrt{\frac{1-\alpha_t}{\alpha_t}}\right)\epsilon_\theta^{(t)}(x_t)
 $$
