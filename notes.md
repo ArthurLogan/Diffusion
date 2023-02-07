@@ -61,7 +61,7 @@ $$
 q(x_{t}|x_{t-1})=\mathcal{N}(x_t;\sqrt{1-\beta_t}x_{t-1},\beta_t\text{I})
 $$
 
-前向过程不断增加噪声，因此方差系数 $\beta_t$ 随时间逐渐增大，最初接近0，最终趋于1。由高斯分布的边缘分布和条件分布仍然是高斯分布，因此将 $x_1$ 积分，通过重参数技巧表示，令 $\alpha_t=1-\beta_t$， $\bar{\alpha}_t=\prod_{s=1}^t\alpha_s$ 。
+前向过程不断增加噪声，因此方差系数 $\beta_t$ 随时间逐渐增大，最初接近0，最终趋于1。由高斯分布的边缘分布和条件分布仍然是高斯分布，因此将 $x_1$ 积分，通过重参数技巧表示，令 $\alpha_t=1-\beta_t$, $\bar{\alpha}_t=\prod_{s=1}^t\alpha_s$ 。
 
 $$
 x_2=\sqrt{\alpha_2}x_1+\sqrt{\beta_2}\epsilon_2=\sqrt{\alpha_1\alpha_2}x_0+\sqrt{\alpha_2\beta_1}\epsilon_1+\sqrt{\beta_2}\epsilon_2
@@ -124,13 +124,13 @@ $$
 L_{t-1}-C=\mathbb{E}_{x_0,\epsilon}\left[\frac{\beta_t^2}{2\sigma_t^2\alpha_t(1-\bar{\alpha}_t)}||\epsilon-\epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0+\sqrt{1-\bar{\alpha}_t}\epsilon,t)||^2\right]
 $$
 
-最后一项将$(-\infty,\infty)$范围归一化到概率，通过划定正态分布的不同区域，公式如下。
+最后一项将 $(-\infty,\infty)$ 范围归一化到概率，通过划定正态分布的不同区域，公式如下。
 
 $$
 p_\theta(x_0|x_1)=\prod_{i=1}^D\int_{\delta_-}^{\delta_+}\mathcal{N}(x;\mu_\theta(x_1,1),\sigma_1^2)dx
 $$
 
-$$
+```math
 \delta_+=\left\{\begin{matrix}
 \infty & \text{if}\ x=1\\ 
 x+\frac{1}{255} & \text{if}\ x<1
@@ -139,7 +139,7 @@ x+\frac{1}{255} & \text{if}\ x<1
 -\infty & \text{if}\ x=-1\\ 
 x-\frac{1}{255} & \text{if}\ x>-1
 \end{matrix}\right.
-$$
+```
 
 在实际训练中，通常忽略前置系数，将优化目标转化为下式。
 
