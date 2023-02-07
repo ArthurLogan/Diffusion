@@ -165,7 +165,6 @@ q_\sigma(x_t|x_{t-1},x_0)=\frac{q_\sigma(x_{t-1}|x_t,x_0)q_\sigma(x_t|x_0)}{q_\s
 $$
 
 **逆向过程**：在DDPM中，作者固定方差，只通过学习均值使得网络逼近逆向过程概率。在DDIM中，由于不要求前向过程为马尔可夫过程，因此逆向过程的形式丰富了很多，并引入可调节方差参数 $\sigma$ 。在逆向采样时，首先通过 $x_t$ 估计 $x_0$ 。
-
 $$
 f_\theta^{(t)}(x_t)=\frac{x_t-\sqrt{1-\alpha_t}\cdot \epsilon_\theta^{(t)}(x_t)}{\sqrt{\alpha_t}}
 $$
@@ -174,7 +173,8 @@ $$
 
 $$
 \begin{align*}
-p_\theta^{(t)}(x_{t-1}|x_t)&=\mathcal{N}(f_\theta^{(1)}(x_1),\sigma_1^2I)\ \ \text{if}\ t=1\\  p_\theta^{(t)}(x_{t-1}|x_t)&=q_\sigma(x_{t-1}|x_t,f_\theta^{(t)}(x_t))\ \text{otherwise}
+p_\theta^{(t)}(x_{t-1}|x_t)&=\mathcal{N}(f_\theta^{(1)}(x_1),\sigma_1^2I)\ \ \text{if}\ t=1\\
+p_\theta^{(t)}(x_{t-1}|x_t)&=q_\sigma(x_{t-1}|x_t,f_\theta^{(t)}(x_t))\ \text{otherwise}
 \end{align*}
 $$
 
