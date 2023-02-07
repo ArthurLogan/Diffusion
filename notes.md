@@ -176,7 +176,6 @@ q_\sigma(x_t|x_{t-1},x_0)=\frac{q_\sigma(x_{t-1}|x_t,x_0)q_\sigma(x_t|x_0)}{q_\s
 $$
 
 **逆向过程**：在DDPM中，作者固定方差，只通过学习均值使得网络逼近逆向过程概率。在DDIM中，由于不要求前向过程为马尔可夫过程，因此逆向过程的形式丰富了很多，并引入可调节方差参数 $\sigma$ 。在逆向采样时，首先通过 $x_t$ 估计 $x_0$ 。
-
 $$
 f_\theta^{(t)}(x_t)=\frac{x_t-\sqrt{1-\alpha_t}\cdot \epsilon_\theta^{(t)}(x_t)}{\sqrt{\alpha_t}}
 $$
@@ -197,4 +196,28 @@ $$
 J&=\mathbb{E}_q[\log q_\sigma(x_{1:T}|x_0)-\log p_\theta(x_{0:T})]\\
 &=\mathbb{E}_q\left[\log q_\sigma(x_T|x_0)+\sum_{t=2}^T\log q_\sigma(x_{t-1}|x_t,x_0)-\sum_{t=1}^T\log p_\theta^{(t)}(x_{t-1}|x_t)-\log p_\theta(x_T)\right]
 \end{align*}
+$$
+可以证明该优化目标和DDPM的优化目标相差常数，一组 $\sigma$ 参数对应一组 $\gamma$ 参数。如果误差函数 $\epsilon_{\theta}$ 在时间维度不共享，则DDPM中的优化目标等价于 $L_{0:T}$ 每项的最优和，在该条件下如下式子成立。
+
+$$
+J_\sigma\equiv L_\gamma \equiv L_1
+$$
+以 $L_1$ 为优化目标的模型同样学习了以非马尔可夫前向过程属性，因此可以通过修改 $\sigma$ 去优化前向过程。 
+
+**采样过程**：和DDPM相同，作者通过当前 $x_t$ 预测 $x_0$ 并代入 $q_\sigma$ 公式，通过重参数计算 $x_{t-1}$ 。
+
+$$
+x_{t-1}=\sqrt{\alpha_{t-1}}\left(\frac{x_t-\sqrt{1-\alpha_t}\epsilon_\theta^{(t)}(x_t)}{\sqrt{\alpha_t}}\right)+\sqrt{1-\alpha_{t-1}-\sigma_t^2}\cdot \epsilon_\theta^{(t)}(x_t)+\sigma_t\epsilon_t
+$$
+
+通过调整 $\sigma$ 可以得到不同的前向过程和逆向过程，当 $\sigma=\sqrt{(1-\alpha_{t-1})/(1-\alpha_t)}\sqrt{1-\alpha_t/\alpha_{t-1}}$ 时，前向过程退化为马尔可夫链即DDPM，对应采样过程如下。
+
+$$
+x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+
+$$
+
+另一种特殊情况，当 $\sigma=0$ 时，采样过程退化成确定过程，此时采样过程如下。
+
+$$
+x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sqrt{\alpha_{t-1}}\left(\sqrt{\frac{1-\alpha_{t-1}}{\alpha_{t-1}}}-\sqrt{\frac{1-\alpha_t}{\alpha_t}}\right)
 $$
