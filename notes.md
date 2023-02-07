@@ -204,7 +204,7 @@ $$
 通过调整 $\sigma$ 可以得到不同的前向过程和逆向过程，当 $\sigma=\sqrt{(1-\alpha_{t-1})/(1-\alpha_t)}\sqrt{1-\alpha_t/\alpha_{t-1}}$ 时，前向过程退化为马尔可夫链即DDPM，对应采样过程如下。
 
 $$
-x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sigma_t\epsilon_t
+x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}\left(x_t-\frac{1-\alpha_t/\alpha_{t-1}}{\sqrt{1-\alpha_t}}\epsilon_\theta^{(t)}(x_t)\right)+\sigma_t\epsilon_t
 $$
 
 另一种特殊情况，当 $\sigma=0$ 时，采样过程退化成确定过程，此时采样过程如下，这种逆向过程相当于隐式生成模型，因而称为DDIM。
@@ -212,3 +212,35 @@ $$
 $$
 x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sqrt{\alpha_{t-1}}\left(\sqrt{\frac{1-\alpha_{t-1}}{\alpha_{t-1}}}-\sqrt{\frac{1-\alpha_t}{\alpha_t}}\right)\epsilon_\theta^{(t)}(x_t)
 $$
+**加速采样**：忽略马尔可夫性完全解放了前向和逆向过程的可行域，比如 $x_t$ 可以和 $x_{t-1}$ 相互独立且仅依赖于 $x_0$ ，或 $x_t$ 仅依赖于 $x_{r}, x_0$ 两项，并且边缘概率保持一致。从 $[1,...,T]$ 中采样得到长度为 $S$ 的子集 $\tau$ 并且 $\tau_S=T$ ，可以将联合分布重构成下式。
+$$
+q_{\sigma,\tau}(x_{1:T}|x_0)=q_{\sigma,\tau}(x_{\tau_S}|x_0)\prod_{i=1}^Sq_{\sigma,\tau}(x_{\tau_{i-1}}|x_{\tau_i},x_0)\prod_{t\in \bar{\tau}}q_{\sigma,\tau}(x_t|x_0)
+$$
+
+其中当 $t\in\bar{\tau}$ 时， $x_t$ 仅依赖于 $x_0$ ，当 $t\in\tau$ 时， $x_{\tau_i}$ 依赖于 $x_{\tau_{i-1}},x_0$ 形成前向过程，具体形式如下。
+
+$$
+q_{\sigma,\tau}(x_t|x_0)=\mathcal{N}(\sqrt{\alpha_t}x_0,(1-\alpha_t)I)\ \forall t\in\bar{\tau}\cup\{T\}
+$$
+
+$$
+q_{\sigma,\tau}(x_{\tau_{i-1}}|x_{\tau_i},x_0)=\mathcal{N}\left(\sqrt{\alpha_{\tau_{i-1}}}x_0+\sqrt{1-\alpha_{\tau_{i-1}}-\sigma_{\tau_i}^2}\cdot\frac{x_{\tau_i}-\sqrt{\alpha_{\tau_i}}x_0}{\sqrt{1-\alpha_{\tau_i}}},\sigma_{\tau_i}^2I\right)\ \forall t\in S
+$$
+
+根据采样 $\tau$ 构造逆向过程如下式。
+
+$$
+p_{\theta}(x_{0:T})=p_\theta(x_T)\prod_{i=1}^Sp_\theta^{(\tau_i)}(x_{\tau_{i-1}}|x_{\tau_i})\times\prod_{t\in\bar{\tau}}p_\theta^{(t)}(x_0|x_t)
+$$
+
+其中逆向过程和前向过程相对应构造如下式。
+
+$$
+p_\theta^{(t)}(x_0|x_t)=\mathcal{N}(f_\theta^{(t)}(x_t),\sigma_t^2I)\ t\in\bar{\tau}
+$$
+
+$$
+p_\theta^{(\tau_i)}(x_{\tau_{i-1}}|x_{\tau_i})=q_{\sigma,\tau}(x_{\tau_{i-1}}|x_{\tau_i},f_\theta^{(\tau_i)}(x_{\tau_{i-1}}))\ t\in S
+$$
+
+可以证明此时的优化目标 $J_\sigma$ 等价于DDPM的优化目标 $L_\gamma$ ，进而利用预训练的DDPM模型。
