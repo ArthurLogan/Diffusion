@@ -61,7 +61,7 @@ $$
 q(x_{t}|x_{t-1})=\mathcal{N}(x_t;\sqrt{1-\beta_t}x_{t-1},\beta_t\text{I})
 $$
 
-前向过程不断增加噪声，因此方差系数 $\beta_t$ 随时间逐渐增大，最初接近0，最终趋于1。由高斯分布的边缘分布和条件分布仍然是高斯分布，因此将 $x_1$ 积分，通过重参数技巧表示，令 $\alpha_t=1-\beta_t$, $\bar{\alpha}_t=\prod_{s=1}^t\alpha_s$ 。
+前向过程不断增加噪声，因此方差系数 $\beta_t$ 随时间逐渐增大，最初接近0，最终趋于1。由高斯分布的边缘分布和条件分布仍然是高斯分布，因此将 $x_1$ 积分，通过重参数技巧表示，令 $\alpha_t=1-\beta_t, \bar{\alpha}_t=\prod_{s=1}^t\alpha_s$ 。
 
 $$
 x_2=\sqrt{\alpha_2}x_1+\sqrt{\beta_2}\epsilon_2=\sqrt{\alpha_1\alpha_2}x_0+\sqrt{\alpha_2\beta_1}\epsilon_1+\sqrt{\beta_2}\epsilon_2
@@ -130,17 +130,6 @@ $$
 p_\theta(x_0|x_1)=\prod_{i=1}^D\int_{\delta_-}^{\delta_+}\mathcal{N}(x;\mu_\theta(x_1,1),\sigma_1^2)dx
 $$
 
-```math
-\delta_+=\left\{\begin{matrix}
-\infty & \text{if}\ x=1\\ 
-x+\frac{1}{255} & \text{if}\ x<1
-\end{matrix}\right.,\ \
-\delta_-=\left\{\begin{matrix}
--\infty & \text{if}\ x=-1\\ 
-x-\frac{1}{255} & \text{if}\ x>-1
-\end{matrix}\right.
-```
-
 在实际训练中，通常忽略前置系数，将优化目标转化为下式。
 
 $$
@@ -176,6 +165,7 @@ q_\sigma(x_t|x_{t-1},x_0)=\frac{q_\sigma(x_{t-1}|x_t,x_0)q_\sigma(x_t|x_0)}{q_\s
 $$
 
 **逆向过程**：在DDPM中，作者固定方差，只通过学习均值使得网络逼近逆向过程概率。在DDIM中，由于不要求前向过程为马尔可夫过程，因此逆向过程的形式丰富了很多，并引入可调节方差参数 $\sigma$ 。在逆向采样时，首先通过 $x_t$ 估计 $x_0$ 。
+
 $$
 f_\theta^{(t)}(x_t)=\frac{x_t-\sqrt{1-\alpha_t}\cdot \epsilon_\theta^{(t)}(x_t)}{\sqrt{\alpha_t}}
 $$
@@ -183,10 +173,9 @@ $$
 再代入理论的逆向过程公式 $q_\sigma(x_{t-1}|x_t,x_0)$ 得到单步逆向过程如下。
 
 $$
-p_\theta^{(t)}(x_{t-1}|x_t)=\left\{\begin{matrix}
-\mathcal{N}(f_\theta^{(1)}(x_1),\sigma_1^2I) & \text{if}\ t=1\\ 
-q_\sigma(x_{t-1}|x_t,f_\theta^{(t)}(x_t))& \text{otherwise}
-\end{matrix}\right.
+\begin{align*}
+p_\theta^{(t)}(x_{t-1}|x_t)&=\mathcal{N}(f_\theta^{(1)}(x_1),\sigma_1^2I)\ \ \text{if}\ t=1\\  p_\theta^{(t)}(x_{t-1}|x_t)&=q_\sigma(x_{t-1}|x_t,f_\theta^{(t)}(x_t))\ \text{otherwise}
+\end{align*}
 $$
 
 **优化目标**：根据ELBO推导进一步转化成非马尔可夫链的前向过程形式。
@@ -215,7 +204,7 @@ $$
 通过调整 $\sigma$ 可以得到不同的前向过程和逆向过程，当 $\sigma=\sqrt{(1-\alpha_{t-1})/(1-\alpha_t)}\sqrt{1-\alpha_t/\alpha_{t-1}}$ 时，前向过程退化为马尔可夫链即DDPM，对应采样过程如下。
 
 $$
-x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+
+x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sigma_t\epsilon_t
 $$
 
 另一种特殊情况，当 $\sigma=0$ 时，采样过程退化成确定过程，此时采样过程如下，这种逆向过程相当于隐式生成模型，因而称为DDIM。
