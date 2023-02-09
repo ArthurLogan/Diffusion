@@ -244,3 +244,6 @@ p_\theta^{(\tau_i)}(x_{\tau_{i-1}}|x_{\tau_i})=q_{\sigma,\tau}(x_{\tau_{i-1}}|x_
 $$
 
 可以证明此时的优化目标 $J_\sigma$ 等价于DDPM的优化目标 $L_\gamma$ ，进而利用预训练的DDPM模型。
+
+
+
