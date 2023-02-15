@@ -14,13 +14,13 @@
 训练：
 
 ```shell
-python3 train.py --dataset cifar10
+python train.py --dataset cifar10
 ```
 
 生成：
 
 ```shell
-python3 train.py --state eval
+python train.py --state eval
 ```
 
 
