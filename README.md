@@ -30,16 +30,6 @@ python train.py --state eval
 通过requirements.txt维护，通过如下命令安装相关库。
 
 ```shell
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
-
-依赖库如下：
-
-* python>=3.7.5
-* torch>=1.13.1
-* torchvision>=0.14.1
-
-
-
-
 
