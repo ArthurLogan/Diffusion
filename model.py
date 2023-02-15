@@ -3,18 +3,20 @@ from torch import nn
 from torch.nn import init
 from torch.nn import functional as F
 
+import math
+
 
 class TimeEmbedding(nn.Module):
     def __init__(self, T, d_model, dim):
         """time embedding"""
         super().__init__()
         assert d_model % 2 == 0
-        emb = torch.arange(0, d_model, step=2) / d_model * torch.log(10000)
+        emb = torch.arange(0, d_model, step=2) / d_model * math.log(10000)
         emb = torch.exp(-emb)
         pos = torch.arange(T).float()
         emb = pos[:, None] * emb[None, :]
         assert list(emb.shape) == [T, d_model // 2]
-        emb = torch.stack([torch.sin(emb), torch.cos(emb)], dim==-1)
+        emb = torch.stack([torch.sin(emb), torch.cos(emb)], dim=-1)
         assert list(emb.shape) == [T, d_model // 2, 2]
         emb = emb.view(T, d_model)
 
@@ -51,7 +53,7 @@ class DownSample(nn.Module):
         init.xavier_uniform_(self.conv.weight)
         init.zeros_(self.conv.bias)
 
-    def forward(self, x: torch.Tensor, temb: torch.Tensor):
+    def forward(self, x, temb):
         """[B, C, H, W] -> [B, C, H // 2, W // 2]"""
         assert len(x.shape) == 4
         x = self.conv(x)
@@ -80,7 +82,7 @@ class UpSample(nn.Module):
 
 class Attention(nn.Module):
     def __init__(self, in_ch):
-        """attention block"""
+        """self attention block"""
         super().__init__()
         self.norm = nn.GroupNorm(32, in_ch)
         self.proj_q = nn.Conv2d(in_ch, in_ch, 1, stride=1, padding=0)
@@ -157,7 +159,7 @@ class ResBlock(nn.Module):
                 init.zeros_(module.bias)
         init.xavier_uniform_(self.block2[-1].weight, gain=1e-5)
 
-    def forward(self, x: torch.Tensor, temb: torch.Tensor):
+    def forward(self, x, temb):
         """residual block, dim unchange"""
         h = self.block1(x)
         h += self.tproj(temb)[:, :, None, None]
@@ -215,8 +217,8 @@ class UNet(nn.Module):
         """initialize weight & bias"""
         init.xavier_uniform_(self.head.weight)
         init.zeros_(self.head.bias)
-        init.xavier_uniform_(self.tail.weight)
-        init.zeros_(self.tail.bias)
+        init.xavier_uniform_(self.tail[-1].weight, gain=1e-5)
+        init.zeros_(self.tail[-1].bias)
     
     def forward(self, x, t):
         """unet, dim unchange"""
