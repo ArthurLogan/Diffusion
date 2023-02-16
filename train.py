@@ -142,5 +142,5 @@ if __name__ == "__main__":
     args = parse()
     if args.state == "train":
         train(args)
-    elif args.state == 'test':
+    elif args.state == 'eval':
         eval(args)

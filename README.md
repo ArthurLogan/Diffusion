@@ -20,7 +20,7 @@ python train.py --dataset cifar10
 生成：
 
 ```shell
-python train.py --state eval
+python train.py --state eval --checkpoint_name ckpt_199_.pt
 ```
 
 

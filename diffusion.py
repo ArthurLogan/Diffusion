@@ -50,7 +50,7 @@ class DiffusionSampler(nn.Module):
         self.register_buffer('betas', torch.linspace(beta_1, beta_T, T).double())
         alphas = 1.0 - self.betas
         alphas_bar = torch.cumprod(alphas, dim=0)
-        alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)
+        alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)[:T]
 
         self.register_buffer('coeff1', torch.sqrt(1.0 / alphas))
         self.register_buffer('coeff2', self.coeff1 * (1.0 - alphas) / torch.sqrt(1.0 - alphas_bar))
@@ -79,6 +79,7 @@ class DiffusionSampler(nn.Module):
         """[B, C, H, W] -> [B, C, H, W] from noise to image"""
         x_t = x_T
         for time_step in reversed(range(self.T)):
+            print(time_step)
             t = x_t.new_ones([x_T.shape[0], ], dtype=torch.long) * time_step
             mean, var = self.p_mean_variance(x_t, t)
             if time_step > 0:
