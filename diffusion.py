@@ -40,21 +40,42 @@ class DiffusionTrainer(nn.Module):
 
 
 class DiffusionSampler(nn.Module):
-    def __init__(self, model, beta_1, beta_T, T, eta):
+    def __init__(self, model, beta_1, beta_T, T, eta, timesteps, skip_type):
         """gaussian diffusion sampler"""
         super().__init__()
+        assert timesteps <= T
 
         self.model = model
-        self.T = T
+        self.T = timesteps
 
-        self.register_buffer('betas', torch.linspace(beta_1, beta_T, T).double())
-        alphas = 1.0 - self.betas
-        alphas_bar = torch.cumprod(alphas, dim=0)
-        alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)[:T]
+        if skip_type == 'uniform':
+            skip = T // timesteps
+            seq = range(0, T, skip)
+        elif skip_type == 'quad':
+            seq = np.linspace(0, np.sqrt(T * 0.8), timesteps) ** 2
+            seq = [int(s) for s in list(seq)]
+        
+        betas = torch.linspace(beta_1, beta_T, T).float()
+        alphas = 1.0 - betas
+        alphas_bar = torch.cumprod(alphas, dim=0)[seq]
+        alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)[:-1]
+        self.register_buffer('betas', 1.0 - alphas_bar / alphas_bar_prev)
 
-        self.register_buffer('coeff1', torch.sqrt(1.0 / alphas))
-        self.register_buffer('coeff2', self.coeff1 * (1.0 - alphas) / torch.sqrt(1.0 - alphas_bar))
-        self.register_buffer('posterior_var', self.betas * (1.0 - alphas_bar_prev) / (1.0 - alphas_bar))
+        self.register_buffer('coeff1', torch.sqrt(1.0 / (1.0 - self.betas)))
+
+        c1 = eta * torch.sqrt(self.betas * (1.0 - alphas_bar_prev) / (1.0 - alphas_bar))
+        c2 = torch.sqrt(1.0 - alphas_bar_prev - c1 ** 2)
+        self.register_buffer('coeff2', c2 - self.coeff1 * torch.sqrt(1.0 - alphas_bar))
+        self.register_buffer('posterior_var', c1 ** 2)
+
+        # self.register_buffer('betas', torch.linspace(beta_1, beta_T, T).double())
+        # alphas = 1.0 - self.betas
+        # alphas_bar = torch.cumprod(alphas, dim=0)
+        # alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)[:T]
+
+        # self.register_buffer('coeff1', torch.sqrt(1.0 / alphas))
+        # self.register_buffer('coeff2', self.coeff1 * (1.0 - alphas) / torch.sqrt(1.0 - alphas_bar))
+        # self.register_buffer('posterior_var', self.betas * (1.0 - alphas_bar_prev) / (1.0 - alphas_bar))
 
     def predict_xt_prev_mean_from_eps(self, x_t, t, eps):
         """predict x_{t-1} in reverse process"""

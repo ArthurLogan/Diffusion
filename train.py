@@ -32,8 +32,7 @@ def parse():
     parser.add_argument("--beta_1", type=float, default=1e-4, help="forward process variance")
     parser.add_argument("--beta_T", type=float, default=0.02, help="forward process variance")
     parser.add_argument("--eta", type=float, default=1, help="coefficient to adjust sample process")
-    parser.add_argument("--ddpm", type=bool, default=True, help="if use ddpm/ddim to sample")
-    parser.add_argument("--time_step", type=int, default=1000, help="time step in sample process")
+    parser.add_argument("--timesteps", type=int, default=1000, help="time step in sample process")
     parser.add_argument("--skip_type", type=str, default="uniform", choices=["uniform", "quad"], help="skip type")
 
     # optimizer configuration
@@ -128,7 +127,8 @@ def eval(args):
         print("model load weight done.")
 
         net.eval()
-        sampler = DiffusionSampler(net, args.beta_1, args.beta_T, args.T).to(device)
+        sampler = DiffusionSampler(net, args.beta_1, args.beta_T, args.T,
+                                   args.eta, args.timesteps, args.skip_type).to(device)
 
         if not os.path.exists(args.sample_dir):
             os.makedirs(args.sample_dir)
