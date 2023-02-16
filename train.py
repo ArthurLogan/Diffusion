@@ -31,6 +31,10 @@ def parse():
     parser.add_argument("--T", type=int, default=1000, help="number of steps in reversed process")
     parser.add_argument("--beta_1", type=float, default=1e-4, help="forward process variance")
     parser.add_argument("--beta_T", type=float, default=0.02, help="forward process variance")
+    parser.add_argument("--eta", type=float, default=1, help="coefficient to adjust sample process")
+    parser.add_argument("--ddpm", type=bool, default=True, help="if use ddpm/ddim to sample")
+    parser.add_argument("--time_step", type=int, default=1000, help="time step in sample process")
+    parser.add_argument("--skip_type", type=str, default="uniform", choices=["uniform", "quad"], help="skip type")
 
     # optimizer configuration
     parser.add_argument("--multiplier", type=float, default=2.0, help="learning rate multiplier during warm up state")

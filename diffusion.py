@@ -40,7 +40,7 @@ class DiffusionTrainer(nn.Module):
 
 
 class DiffusionSampler(nn.Module):
-    def __init__(self, model, beta_1, beta_T, T):
+    def __init__(self, model, beta_1, beta_T, T, eta):
         """gaussian diffusion sampler"""
         super().__init__()
 
@@ -68,12 +68,9 @@ class DiffusionSampler(nn.Module):
         """predict mean & variance for sampling"""
         var = torch.cat([self.posterior_var[1:2], self.betas[1:]])
         var = extract(var, t, x_t.shape)
-
         eps = self.model(x_t, t)
         mean = self.predict_xt_prev_mean_from_eps(x_t, t, eps=eps)
-
         return mean, var
-
 
     def forward(self, x_T):
         """[B, C, H, W] -> [B, C, H, W] from noise to image"""
