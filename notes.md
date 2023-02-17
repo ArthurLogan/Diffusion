@@ -263,7 +263,9 @@ $$
 $$
 Z(\theta)=\int_{\xi\in\mathbb{R}^n}q(\xi;\theta)d\xi
 $$
+
 **Scores匹配**：是一种避开计算归一化常数的方法，通过逼近对数概率的梯度的方式。
+
 $$
 \psi(\xi;\theta)=\nabla_\xi\log p(\xi;\theta)=\begin{pmatrix}
 \frac{\partial \log p(\xi;\theta)}{\xi_1}\\ 
@@ -271,14 +273,17 @@ $$
 \frac{\partial \log p(\xi;\theta)}{\xi_n}
 \end{pmatrix}
 $$
+
 我们通过 $\psi_x(.)=\nabla_\xi\log p_x(.)$ 表示对真实分布的Scores函数，从而将问题转化成逼近对数概率的梯度。即最小化Scores层面的距离。
 
 $$
 J(\theta)=\frac{1}{2}\int_{\xi\in\mathbb{R}^n}p_x(\xi)||\psi(\xi;\theta)-\psi_x(\xi)||^2d\xi
 $$
+
 在模型非退化的前提下，即不同参数不会映射到相同的概率密度函数，并且概率密度函数 $p_x(\xi)$ 始终大于零，可以证明 $J(\theta)=0\Leftrightarrow \theta=\theta^*$ 。
 
 **优化目标**：上述距离包含了真实分布的Scores函数，仍然无法计算。当模型的Scores函数可微，并且满足一定条件时，Scores层面距离可以转化为下式。
+
 $$
 \begin{align*}
 J(\theta)&=\int p_x(\xi)\left[\frac{1}{2}||\psi_x(\xi)||^2+\frac{1}{2}||\psi(\xi;\theta)||^2-\psi_x(\xi)^T\psi(\xi;\theta)\right]d\xi
