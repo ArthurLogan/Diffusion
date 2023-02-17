@@ -308,4 +308,5 @@ $$
 $$
 J(\theta)=\int_{\xi\in\mathbb{R}^n}p_x(\xi)\sum_{i=1}^n\left[\partial_i\psi_i(\xi;\theta)+\frac{1}{2}\psi_i(\xi;\theta)^2\right]d\xi+const.
 $$
+
 上述优化目标可以从数据分布中采样取平均来近似优化。
