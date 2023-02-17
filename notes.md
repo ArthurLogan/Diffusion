@@ -263,12 +263,49 @@ $$
 $$
 Z(\theta)=\int_{\xi\in\mathbb{R}^n}q(\xi;\theta)d\xi
 $$
-Scores匹配就是寻找一种避开计算归一化常数的方法，通过逼近对数概率的梯度的方式。
-
+**Scores匹配**：是一种避开计算归一化常数的方法，通过逼近对数概率的梯度的方式。
 $$
-\psi(\xi;\theta)=\begin{pmatrix}
+\psi(\xi;\theta)=\nabla_\xi\log p(\xi;\theta)=\begin{pmatrix}
 \frac{\partial \log p(\xi;\theta)}{\xi_1}\\ 
 \vdots\\ 
-1
+\frac{\partial \log p(\xi;\theta)}{\xi_n}
 \end{pmatrix}
 $$
+我们通过 $\psi_x(.)=\nabla_\xi\log p_x(.)$ 表示对真实分布的Scores函数，从而将问题转化成逼近对数概率的梯度。即最小化Scores层面的距离。
+
+$$
+J(\theta)=\frac{1}{2}\int_{\xi\in\mathbb{R}^n}p_x(\xi)||\psi(\xi;\theta)-\psi_x(\xi)||^2d\xi
+$$
+在模型非退化的前提下，即不同参数不会映射到相同的概率密度函数，并且概率密度函数 $p_x(\xi)$ 始终大于零，可以证明 $J(\theta)=0\Leftrightarrow \theta=\theta^*$ 。
+
+**优化目标**：上述距离包含了真实分布的Scores函数，仍然无法计算。当模型的Scores函数可微，并且满足一定条件时，Scores层面距离可以转化为下式。
+$$
+\begin{align*}
+J(\theta)&=\int p_x(\xi)\left[\frac{1}{2}||\psi_x(\xi)||^2+\frac{1}{2}||\psi(\xi;\theta)||^2-\psi_x(\xi)^T\psi(\xi;\theta)\right]d\xi
+\end{align*}
+$$
+
+其中第一项和参数无关，在优化中可以忽略。将第三项向量内积拆开可以得到 $-\sum_i\int p_x(\xi)\psi_{x,i}(\xi)\psi_i(\xi;\theta)d\xi$ ，通过Scores函数定义和分部积分进一步转化。
+
+$$
+-\int p_x(\xi)\frac{\partial\log p_x(\xi)}{\partial\xi_i}\psi_i(\xi;\theta)d\xi=-\int\frac{\partial p_x(\xi)}{\partial \xi_i}\psi_i(\xi;\theta)d\xi
+$$
+
+假设 $p_x(\xi)\psi(\xi;\theta)$ 趋于零，当 $\xi$ 趋于无穷时，则通过下述公式。
+
+$$
+f(x,\xi_2,...,\xi_n)g(x,\xi_2,...,\xi_n)|_{-\infty}^{+\infty}=\int_{-\infty}^{\infty}f(\xi)\frac{\partial g(\xi)}{\partial \xi_1}d\xi_1+\int_{-\infty}^{\infty}g(\xi)\frac{\partial f(\xi)}{\partial \xi_1}d\xi_1
+$$
+
+这个公式由对 $\nabla_{\xi_1}f(\xi)g(\xi)$ 两侧积分得到，并且对 $\xi_2,...\xi_n$ 同样适用。根据上述假设，左侧式子值为0，因此整合到第三项中即有：
+
+$$
+-\int\frac{\partial p_x(\xi)}{\partial \xi_i}\psi_i(\xi;\theta)d\xi=\int p_x(\xi)\frac{\partial \psi_i(\xi;\theta)}{\partial \xi_i}d\xi
+$$
+
+整合上述推导，Scores层面距离最终可以转化为下式优化函数。
+
+$$
+J(\theta)=\int_{\xi\in\mathbb{R}^n}p_x(\xi)\sum_{i=1}^n\left[\partial_i\psi_i(\xi;\theta)+\frac{1}{2}\psi_i(\xi;\theta)^2\right]d\xi+const.
+$$
+上述优化目标可以从数据分布中采样取平均来近似优化。
