@@ -174,6 +174,7 @@ q_\sigma(x_t|x_{t-1},x_0)=\frac{q_\sigma(x_{t-1}|x_t,x_0)q_\sigma(x_t|x_0)}{q_\s
 $$
 
 **逆向过程**：在DDPM中，作者固定方差，只通过学习均值使得网络逼近逆向过程概率。在DDIM中，由于不要求前向过程为马尔可夫过程，因此逆向过程的形式丰富了很多，并引入可调节方差参数 $\sigma$ 。在逆向采样时，首先通过 $x_t$ 估计 $x_0$ 。
+
 $$
 f_\theta^{(t)}(x_t)=\frac{x_t-\sqrt{1-\alpha_t}\cdot \epsilon_\theta^{(t)}(x_t)}{\sqrt{\alpha_t}}
 $$
@@ -223,6 +224,7 @@ x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sqrt{\alpha_{t-1}}\left(\sqrt{\
 $$
 
 **加速采样**：忽略马尔可夫性完全解放了前向和逆向过程的可行域，比如 $x_t$ 可以和 $x_{t-1}$ 相互独立且仅依赖于 $x_0$ ，或 $x_t$ 仅依赖于 $x_{r}, x_0$ 两项，并且边缘概率保持一致。从 $[1,...,T]$ 中采样得到长度为 $S$ 的子集 $\tau$ 并且 $\tau_S=T$ ，可以将联合分布重构成下式。
+
 $$
 q_{\sigma,\tau}(x_{1:T}|x_0)=q_{\sigma,\tau}(x_{\tau_S}|x_0)\prod_{i=1}^Sq_{\sigma,\tau}(x_{\tau_{i-1}}|x_{\tau_i},x_0)\prod_{t\in \bar{\tau}}q_{\sigma,\tau}(x_t|x_0)
 $$
