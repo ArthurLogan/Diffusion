@@ -18,6 +18,7 @@
 Paper：[Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114)
 
 VAE文章指出，可以将概率密度的负对数，转换为KL散度和期望之和。假设真实分布由参数 $\theta$ 控制，模型参数由 $\phi$ 控制，则概率负对数表示如下。
+
 $$
 \begin{align*}
 \log p_{\theta}(x)&=\mathbb{E}_{q_{\phi}(z|x)}\left[\log p_{\theta}(x,z)-\log\frac{p_{\theta}(x,z)}{p_{\theta}(x)}\right]\\
@@ -220,6 +221,7 @@ $$
 $$
 x_{t-1}=\sqrt{\frac{\alpha_{t-1}}{\alpha_t}}x_t+\sqrt{\alpha_{t-1}}\left(\sqrt{\frac{1-\alpha_{t-1}}{\alpha_{t-1}}}-\sqrt{\frac{1-\alpha_t}{\alpha_t}}\right)\epsilon_\theta^{(t)}(x_t)
 $$
+
 **加速采样**：忽略马尔可夫性完全解放了前向和逆向过程的可行域，比如 $x_t$ 可以和 $x_{t-1}$ 相互独立且仅依赖于 $x_0$ ，或 $x_t$ 仅依赖于 $x_{r}, x_0$ 两项，并且边缘概率保持一致。从 $[1,...,T]$ 中采样得到长度为 $S$ 的子集 $\tau$ 并且 $\tau_S=T$ ，可以将联合分布重构成下式。
 $$
 q_{\sigma,\tau}(x_{1:T}|x_0)=q_{\sigma,\tau}(x_{\tau_S}|x_0)\prod_{i=1}^Sq_{\sigma,\tau}(x_{\tau_{i-1}}|x_{\tau_i},x_0)\prod_{t\in \bar{\tau}}q_{\sigma,\tau}(x_t|x_0)
@@ -260,6 +262,7 @@ $$
 Paper：[Estimation of Non-Normalized Statistical Models by Score Matching](https://www.jmlr.org/papers/volume6/hyvarinen05a/hyvarinen05a.pdf)
 
 不妨假设随机向量 $x\in \mathbb{R}^n$ 服从概率密度函数 $p_x$ ，我们使用参数化方法对概率密度建模 $p(.:\theta)$ ，其中参数 $\theta$ 为m维向量。此处我们仅考虑连续概率分布，并希望通过调整参数 $\theta$ 使得模型逼近真实的概率密度函数。通过参数化方法建模后，需要归一化才能得到真实的概率密度，形式如下。
+
 $$
 p(\xi;\theta)=\frac{1}{Z(\theta)}q(\xi;\theta)
 $$
@@ -271,6 +274,7 @@ Z(\theta)=\int_{\xi\in\mathbb{R}^n}q(\xi;\theta)d\xi
 $$
 
 **Score匹配**：是一种避开计算归一化常数的方法，通过逼近对数概率的梯度的方式。
+
 $$
 \psi(\xi;\theta)=\nabla_\xi\log p(\xi;\theta)=\begin{pmatrix}
 \frac{\partial \log p(\xi;\theta)}{\xi_1}\\ 
@@ -288,6 +292,7 @@ $$
 在模型非退化的前提下，即不同参数不会映射到相同的概率密度函数，并且概率密度函数 $p_x(\xi)$ 始终大于零，可以证明 $J(\theta)=0\Leftrightarrow \theta=\theta^*$ 。
 
 **优化目标**：上述距离包含了真实分布的Score函数，仍然无法计算。当模型的Score函数可微，并且满足一定条件时，Score层面距离可以转化为下式。
+
 $$
 \begin{align*}
 J(\theta)&=\int p_x(\xi)\left[\frac{1}{2}||\psi_x(\xi)||^2+\frac{1}{2}||\psi(\xi;\theta)||^2-\psi_x(\xi)^T\psi(\xi;\theta)\right]d\xi
@@ -325,3 +330,4 @@ $$
 ## Denoising Score Matchcing
 
 Paper：[A Connection Between Score Matching and Denoising Autoencoders](https://www.iro.umontreal.ca/~vincentp/Publications/smdae_techreport.pdf)
+
