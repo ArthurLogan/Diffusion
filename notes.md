@@ -15,8 +15,9 @@
 
 ## ELBO
 
-VAE文章指出，可以将概率密度的负对数，转换为KL散度和期望之和。假设真实分布由参数 $\theta$ 控制，模型参数由 $\phi$ 控制，则概率负对数表示如下。
+Paper：[Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114)
 
+VAE文章指出，可以将概率密度的负对数，转换为KL散度和期望之和。假设真实分布由参数 $\theta$ 控制，模型参数由 $\phi$ 控制，则概率负对数表示如下。
 $$
 \begin{align*}
 \log p_{\theta}(x)&=\mathbb{E}_{q_{\phi}(z|x)}\left[\log p_{\theta}(x,z)-\log\frac{p_{\theta}(x,z)}{p_{\theta}(x)}\right]\\
@@ -45,6 +46,8 @@ $$
 
 
 ## DDPM
+
+Paper：[Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
 
 VAE假设隐变量服从高斯分布，训练过程编码器输出高斯均值和方差，再通过重参数技巧采样，经过解码器还原成输入图像。这个过程涉及到编码器和解码器两个网络，由于参数量很大，训练过程(即参数搜索过程)很容易产生类似于GAN的不稳定情况。
 
@@ -140,6 +143,8 @@ $$
 
 
 ## DDIM
+
+Paper：[Denoising Diffusion Implicit Models](https://arxiv.org/abs/2010.02502)
 
 DDPM基于马尔可夫过程构建前向过程，不断向图像增加噪声，直至图像变成高斯噪声。但最后构建的目标函数及训练过程和某一步前向过程无关，仅依赖从 $x_0\rightarrow x_t$ 的边缘过程。能否保证边缘概率相同的基础上，修改前向过程，从而提高逆向过程采样效率。
 
@@ -252,8 +257,9 @@ $$
 
 ## Score
 
-不妨假设随机向量 $x\in \mathbb{R}^n$ 服从概率密度函数 $p_x$ ，我们使用参数化方法对概率密度建模 $p(.:\theta)$ ，其中参数 $\theta$ 为m维向量。此处我们仅考虑连续概率分布，并希望通过调整参数 $\theta$ 使得模型逼近真实的概率密度函数。通过参数化方法建模后，需要归一化才能得到真实的概率密度，形式如下。
+Paper：[Estimation of Non-Normalized Statistical Models by Score Matching](https://www.jmlr.org/papers/volume6/hyvarinen05a/hyvarinen05a.pdf)
 
+不妨假设随机向量 $x\in \mathbb{R}^n$ 服从概率密度函数 $p_x$ ，我们使用参数化方法对概率密度建模 $p(.:\theta)$ ，其中参数 $\theta$ 为m维向量。此处我们仅考虑连续概率分布，并希望通过调整参数 $\theta$ 使得模型逼近真实的概率密度函数。通过参数化方法建模后，需要归一化才能得到真实的概率密度，形式如下。
 $$
 p(\xi;\theta)=\frac{1}{Z(\theta)}q(\xi;\theta)
 $$
@@ -317,3 +323,5 @@ $$
 
 
 ## Denoising Score Matchcing
+
+Paper：[A Connection Between Score Matching and Denoising Autoencoders](https://www.iro.umontreal.ca/~vincentp/Publications/smdae_techreport.pdf)
