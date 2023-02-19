@@ -378,3 +378,11 @@ $$
 $$
 
 梯度方向从被污染的图像指向赶紧图像。可以证明对于任意施加噪声，DSM和ESM的优化目标仅相差和参数无关的常数，二者优化目标一致。并且同样可以证明，选择特定参数化模型，并对输入数据施加高斯分布，则DSM和DAE仅相差常数倍，二者优化目标一致。
+
+
+
+## EDM
+
+Paper：[Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364)
+
+
