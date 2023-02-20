@@ -10,13 +10,19 @@ from diffusion import DiffusionTrainer, DiffusionSampler
 from loader import load_dataset
 from scheduler import WarmUpScheduler
 
+# Distributed Data Parallel
+import torch.distributed as dist
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+
 def parse():
     parser = argparse.ArgumentParser("Diffusion Model")
-    parser.add_argument("--state", type=str, choices=["train", "eval"], default="train",
+    parser.add_argument("--state", type=str, choices=["train", "eval", "ddp"], default="train",
         help="train or eval the network")
     
     # training parameters
-    parser.add_argument("--epoch", type=int, default=200, help="number of epoches")
+    parser.add_argument("--epoch", type=int, default=1000, help="number of epoches")
     parser.add_argument("--batch_size", type=int, default=80, help="number of batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="learning rate")
 
@@ -57,7 +63,7 @@ def parse():
     parser.add_argument("--dataset", type=str, default="cifar10", help="datasets for training")
 
     # device
-    parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"], help="use to cpu/cuda")
+    parser.add_argument("--device", type=str, default="cuda:1", help="use to cpu/cuda")
 
     args = parser.parse_args()
     return args
@@ -142,9 +148,93 @@ def eval(args):
         save_image(image, os.path.join(args.sample_dir, args.sample_image_name), nrow=args.nrow)
 
 
+def setup(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    # initialize the process group
+    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+
+
+def cleanup():
+    dist.destroy_process_group()
+
+
+def demo_checkpoint(rank, args, world_size):
+    print(f"Running DDP checkpoint example on rank {rank}.")
+    setup(rank, world_size)
+
+    # dataset
+    dataset, dataloader = load_dataset(args)
+
+    # model
+    net = UNet(T=args.T, ch=args.channel, ch_mult=args.channel_mult, attn=args.attn,
+                    num_res_blocks=args.num_res_blocks, dropout=args.dropout).to(rank)
+    ddp_net = DDP(net, device_ids=[rank])
+
+    CHECKPOINT_PATH = os.path.join(args.checkpoint_dir, "ckpt_ddp_0_.pt")
+    if rank == 0:
+        torch.save(ddp_net.state_dict(), CHECKPOINT_PATH)
+
+    dist.barrier()
+    # configure map_location properly
+    map_location = {'cuda:%d' % 0: 'cuda:%d' % rank}
+    ddp_net.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=map_location))
+    
+    # optimizer
+    optimizer = torch.optim.AdamW(
+        ddp_net.parameters(), lr=args.lr, weight_decay=1e-4)
+    cosineScheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer=optimizer, T_max=args.epoch, eta_min=0, last_epoch=-1)
+    warmUpScheduler = WarmUpScheduler(
+        optimizer=optimizer, multiplier=args.multiplier, warm_epoch=args.epoch // 10, after_scheduler=cosineScheduler)
+
+    # trainer
+    trainer = DiffusionTrainer(ddp_net, args.beta_1, args.beta_T, args.T).to(rank)
+
+    # start training
+    for e in range(args.epoch):
+        if rank == 0:
+            loader = tqdm(dataloader, dynamic_ncols=True)
+        else:
+            loader = dataloader
+        for images, labels in loader:
+            # train
+            optimizer.zero_grad()
+            x_0 = images.to(rank)
+            loss = trainer(x_0).sum() / 1000.0
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(ddp_net.parameters(), args.grad_clip)
+            optimizer.step()
+            if rank == 0:
+                loader.set_postfix(ordered_dict={
+                    "epoch": e,
+                    "loss": loss.item(),
+                    "img shape": x_0.shape,
+                    "LR": optimizer.state_dict()['param_groups'][0]["lr"]
+                })
+        warmUpScheduler.step()
+        if (e + 1) % args.test_time == 0 and rank == 0:
+            torch.save(ddp_net.state_dict(), os.path.join(args.checkpoint_dir, "ckpt_ddp_" + str(e) + "_.pt"))
+
+    cleanup()
+
+
+def ddp(args):
+    n_gpus = torch.cuda.device_count() - 1
+    assert n_gpus >= 2, f"Requires at least 2 GPUs to run, but got {n_gpus}"
+    world_size = n_gpus
+    mp.spawn(demo_checkpoint,
+             args=(args, world_size, ),
+             nprocs=world_size,
+             join=True)
+
+
 if __name__ == "__main__":
     args = parse()
     if args.state == "train":
         train(args)
     elif args.state == 'eval':
         eval(args)
+    elif args.state == 'ddp':
+        ddp(args)

@@ -3,6 +3,7 @@ from torch import nn
 from torch.nn import functional as F
 
 import numpy as np
+from tqdm import tqdm
 
 
 def extract(v, t, shape):
@@ -43,7 +44,7 @@ class DiffusionSampler(nn.Module):
     def __init__(self, model, beta_1, beta_T, T, eta, timesteps, skip_type):
         """gaussian diffusion sampler"""
         super().__init__()
-        assert timesteps <= T
+        assert 0 < timesteps <= T, "timesteps out of range"
 
         self.model = model
         self.T = timesteps
@@ -55,17 +56,16 @@ class DiffusionSampler(nn.Module):
             seq = np.linspace(0, np.sqrt(T * 0.8), timesteps) ** 2
             seq = [int(s) for s in list(seq)]
         
-        betas = torch.linspace(beta_1, beta_T, T).float()
+        betas = torch.linspace(beta_1, beta_T, T).double()
         alphas = 1.0 - betas
         alphas_bar = torch.cumprod(alphas, dim=0)[seq]
         alphas_bar_prev = F.pad(alphas_bar, [1, 0], value=1)[:-1]
         self.register_buffer('betas', 1.0 - alphas_bar / alphas_bar_prev)
 
-        self.register_buffer('coeff1', torch.sqrt(1.0 / (1.0 - self.betas)))
-
         c1 = eta * torch.sqrt(self.betas * (1.0 - alphas_bar_prev) / (1.0 - alphas_bar))
         c2 = torch.sqrt(1.0 - alphas_bar_prev - c1 ** 2)
-        self.register_buffer('coeff2', c2 - self.coeff1 * torch.sqrt(1.0 - alphas_bar))
+        self.register_buffer('coeff1', torch.sqrt(1.0 / (1.0 - self.betas)))
+        self.register_buffer('coeff2', self.coeff1 * torch.sqrt(1.0 - alphas_bar) - c2)
         self.register_buffer('posterior_var', c1 ** 2)
 
         # self.register_buffer('betas', torch.linspace(beta_1, beta_T, T).double())
@@ -96,15 +96,18 @@ class DiffusionSampler(nn.Module):
     def forward(self, x_T):
         """[B, C, H, W] -> [B, C, H, W] from noise to image"""
         x_t = x_T
-        for time_step in reversed(range(self.T)):
-            print(time_step)
-            t = x_t.new_ones([x_T.shape[0], ], dtype=torch.long) * time_step
-            mean, var = self.p_mean_variance(x_t, t)
-            if time_step > 0:
-                noise = torch.randn_like(x_t)
-            else:
-                noise = 0
-            x_t = mean + torch.sqrt(var) * noise
-            assert torch.isnan(x_t).int().sum() == 0, "nan in tensor."
+        with tqdm(reversed(range(self.T))) as tqdmSampler:
+            for time_step in tqdmSampler:
+                t = x_t.new_ones([x_T.shape[0], ], dtype=torch.long) * time_step
+                mean, var = self.p_mean_variance(x_t, t)
+                if time_step > 0:
+                    noise = torch.randn_like(x_t)
+                else:
+                    noise = 0
+                x_t = mean + torch.sqrt(var) * noise
+                assert torch.isnan(x_t).int().sum() == 0, "nan in tensor."
+                tqdmSampler.set_postfix(ordered_dict={
+                    "time": time_step
+                })
         x_0 = x_t
         return torch.clip(x_0, -1, 1)
