@@ -381,8 +381,6 @@ $$
 
 
 
-## EDM
-
-Paper：[Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364)
+## NCSN
 
 
