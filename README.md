@@ -1,9 +1,14 @@
 # Diffusion
 
-复现论文《Denoising Diffusion Probabilistic Models》和《Denoising Diffusion Implicit Models》。基于
+复现论文列表
+* [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
+* [Denoising Diffusion Implicit Models](https://arxiv.org/abs/2010.02502)
 
-* 官方tensorflow版本<https://github.com/hojonathanho/diffusion>。
-* 非官方pytorch实现<https://github.com/zoubohao/DenoisingDiffusionProbabilityModel-ddpm->。
+参考代码
+
+* ddpm官方tensorflow实现<https://github.com/hojonathanho/diffusion>
+* ddpm非官方pytorch实现<https://github.com/zoubohao/DenoisingDiffusionProbabilityModel-ddpm->
+* ddim官方pytorch实现<https://github.com/ermongroup/ddim>
 
 
 
