@@ -6,9 +6,9 @@
 
 参考代码
 
-* ddpm官方tensorflow实现<https://github.com/hojonathanho/diffusion>
-* ddpm非官方pytorch实现<https://github.com/zoubohao/DenoisingDiffusionProbabilityModel-ddpm->
-* ddim官方pytorch实现<https://github.com/ermongroup/ddim>
+* ddpm官方tensorflow实现 <https://github.com/hojonathanho/diffusion>
+* ddpm非官方pytorch实现 <https://github.com/zoubohao/DenoisingDiffusionProbabilityModel-ddpm->
+* ddim官方pytorch实现 <https://github.com/ermongroup/ddim>
 
 
 
