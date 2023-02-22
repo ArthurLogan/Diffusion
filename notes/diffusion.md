@@ -258,6 +258,11 @@ $$
 可以证明此时的优化目标 $J_\sigma$ 等价于DDPM的优化目标 $L_\gamma$ ，进而利用预训练的DDPM模型。
 
 
+## Imporved DDPM
+
+Paper：[]()
+
+
 
 ## Score
 
