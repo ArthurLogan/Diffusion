@@ -30,6 +30,14 @@ python train.py --state eval --checkpoint_name ckpt_199_.pt
 
 
 
+## 预训练模型
+
+在CIFAR10数据集上训练400Epoch的模型。
+
+* <https://drive.google.com/drive/folders/1gsXis557RxTt-M-DpUJJ5frZvnbTfAAr?usp=sharing>
+
+
+
 ## 相关库
 
 通过requirements.txt维护，通过如下命令安装相关库。
