@@ -28,6 +28,9 @@ def parse():
     parser.add_argument("--timesteps", type=int, default=1000, help="time step in sample process")
     parser.add_argument("--time_schedule", type=str, default="uniform", choices=["uniform", "quad"], help="skip type")
 
+    # sampling parameters
+    parser.add_argument("--fid", action="store_true", help="if to calculate fid metric during sampling")
+
     # optimizer configuration
     parser.add_argument("--multiplier", type=float, default=2.0, help="learning rate multiplier during warm up state")
 

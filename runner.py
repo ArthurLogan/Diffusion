@@ -3,11 +3,13 @@ from torch import optim
 from torchvision.utils import save_image
 import os
 from tqdm import tqdm
+import glob
 
 from model import UNet
-from diffusion import DiffusionTrainer, DiffusionSampler, DDIMSampler
-from loader import load_dataset
+from diffusion import DiffusionTrainer, DiffusionSampler
+from loader import load_dataset, save_dataset
 from scheduler import WarmUpScheduler
+from utils import inverse_data_transform
 
 # Distributed Data Parallel
 import torch.distributed as dist
@@ -90,8 +92,32 @@ def eval(args):
         noise = torch.clamp(noisyImage * 0.5 + 0.5, 0, 1)
         save_image(noise, os.path.join(args.sample_dir, args.sample_noise_name), nrow=args.nrow)
         image = sampler(noisyImage)
-        image = image * 0.5 + 0.5
+        image = inverse_data_transform(args, image)
         save_image(image, os.path.join(args.sample_dir, args.sample_image_name), nrow=args.nrow)
+
+        if args.fid:
+            # real images for eval
+            dataset, dataloader = load_dataset(args)
+            save_dataset(args, dataloader)
+
+            # generate images for eval
+            gene_dir = os.path.join(args.sample_dir, "gen_" + args.dataset)
+            if not os.path.exists(gene_dir):
+                os.makedirs(gene_dir)
+            
+            total = 50000
+            img_id = len(glob.glob(gene_dir))
+            round = (total - img_id) // args.batch_size
+            for i in range(round):
+                noise = torch.randn(size=[args.batch_size, 3, 32, 32], device=device)
+                noise = torch.clamp(noise * 0.5 + 0.5, 0, 1)
+                image = sampler(noise)
+                image = inverse_data_transform(args, image)
+                for j in range(args.batch_size):
+                    save_image(image[j], os.path.join(gene_dir, f"{img_id}.png"))
+                    img_id += 1
+                
+                print(f"Process {i}/{round}")
 
 
 # distributed data parallel setup
