@@ -89,17 +89,13 @@ def eval(args):
 
         # sample from gaussian distribution
         noisyImage = torch.randn(size=[args.batch_size, 3, 32, 32], device=device)
-        noise = torch.clamp(noisyImage * 0.5 + 0.5, 0, 1)
+        noise = inverse_data_transform(args, noisyImage)
         save_image(noise, os.path.join(args.sample_dir, args.sample_noise_name), nrow=args.nrow)
         image = sampler(noisyImage)
         image = inverse_data_transform(args, image)
         save_image(image, os.path.join(args.sample_dir, args.sample_image_name), nrow=args.nrow)
 
         if args.fid:
-            # real images for eval
-            dataset, dataloader = load_dataset(args)
-            save_dataset(args, dataloader)
-
             # generate images for eval
             gene_dir = os.path.join(args.sample_dir, "gen_" + args.dataset)
             if not os.path.exists(gene_dir):
@@ -110,7 +106,6 @@ def eval(args):
             round = (total - img_id) // args.batch_size
             for i in range(round):
                 noise = torch.randn(size=[args.batch_size, 3, 32, 32], device=device)
-                noise = torch.clamp(noise * 0.5 + 0.5, 0, 1)
                 image = sampler(noise)
                 image = inverse_data_transform(args, image)
                 for j in range(args.batch_size):

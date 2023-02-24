@@ -9,8 +9,8 @@ def parse():
         help="train or eval the network")
     
     # training parameters
-    parser.add_argument("--epoch", type=int, default=1000, help="number of epoches")
-    parser.add_argument("--batch_size", type=int, default=80, help="number of batch size")
+    parser.add_argument("--epoch", type=int, default=2000, help="number of epoches")
+    parser.add_argument("--batch_size", type=int, default=128, help="number of batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="learning rate")
 
     # unet parameters
