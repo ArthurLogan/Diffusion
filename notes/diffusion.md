@@ -260,8 +260,12 @@ $$
 
 ## Imporved DDPM
 
-Paper：[]()
+Paper：[Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672)
 
+
+## Diffusion beats GAN
+
+Paper：[Diffusion Models Beat GANs on Image Synthesis](https://arxiv.org/abs/2105.05233)
 
 
 ## Score

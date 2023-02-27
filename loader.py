@@ -3,6 +3,7 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10
 from torchvision.utils import save_image
 
+import argparse
 import os
 from tqdm import tqdm
 
@@ -42,3 +43,13 @@ def load_cifar10(batch_size: int):
         num_workers=4, drop_last=True, pin_memory=True
     )
     return dataset, dataloader
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("diffusion loader")
+    parser.add_argument("--dataset", type=str, default="cifar10")
+    parser.add_argument("--batch_size", type=int, default=80)
+    args = parser.parse_args()
+    dataset, dataloader = load_dataset(args)
+    print(type(dataset))
+    print(type(dataloader))
