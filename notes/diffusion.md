@@ -262,6 +262,10 @@ $$
 
 Paper：[Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672)
 
+DDPM能生成非常真实的图片，本文通过大量实验和可视化，在 CIFAR10 和 ImageNet64x64 数据集上得到最好的 FID 指标和对数概率，进而总结得到经验性的结论。
+
+**学习方差**：在DDPM中
+
 
 ## Diffusion beats GAN
 
