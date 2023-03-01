@@ -91,7 +91,7 @@ q(x_{t-1}|x_t,x_0)=\mathcal{N}(x_{t-1};\tilde{\mu}_t(x_t,x_0),\tilde{\beta}_t\te
 $$
 
 $$
-\tilde{\mu}_t(x_t,x_0)=\frac{\sqrt{\bar{\alpha}_{t-1}}\beta_t}{1-\bar{\alpha}_t}x_0+\frac{\sqrt{\alpha}_t(1-\bar{\alpha}_{t-1})}{1-\bar{\alpha}_t}x_t,\ \ \tilde{\beta}=\frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
+\tilde{\mu}_t(x_t,x_0)=\frac{\sqrt{\bar{\alpha}_{t-1}}\beta_t}{1-\bar{\alpha}_t}x_0+\frac{\sqrt{\alpha}_t(1-\bar{\alpha}_{t-1})}{1-\bar{\alpha}_t}x_t,\ \ \tilde{\beta}_t=\frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
 $$
 
 说明对于不同输入图像，逆向过程的高斯均值不相同，但在生成采样的过程中，并不知道输入图像。DDPM假设去除 $x_0$ 条件后仍然为高斯分布，因此在逆向过程中同样使用高斯分布估计近似。
@@ -262,10 +262,55 @@ $$
 
 Paper：[Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672)
 
-DDPM能生成非常真实的图片，本文通过大量实验和可视化，在 CIFAR10 和 ImageNet64x64 数据集上得到最好的 FID 指标和对数概率，进而总结得到经验性的结论。
+生成模型的目标是拟合对未知图像分布，无论通过VAE、Diffusion显式建模，或通过GAN隐式建模，都是希望生成图像分布和真实图像分布尽可能相同，即最大化对数似然。DDPM和DDIM证明Diffusion能生成很真实的图像，但在对数似然上仍差于VAE和Autoregressive model。本文通过实验改进Diffusion模型，最大化对数似然。
 
-**学习方差**：在DDPM中
+**DDPM**：将生成过程建模为多步去噪过程，通过ELBO推导将目标转换成KL散度，从而得到损失函数。
 
+$$
+L_{\text{vlb}}=L_0+L_1+...+L_{T-1}+L_T
+$$
+
+优化目标是一系列独立的损失之和，因此可以随机采样时间，用 $E[L_{t-1}]$ 估计 $L_{\text{vlb}}$ 。
+
+**学习方差**：根据前向过程可以得到逆向过程的表示，但表示形式依赖于原始图像 $x_0$ 。假设 $x_0$ 分别服从标准正态分布和德尔塔分布，可以计算出逆向过程的方差分别为 $\beta_t$ 和 $\tilde{\beta}_t$ 。在大部分时间里，二者值都很接近，因而DDPM指出分别固定逆向方差为 $\beta_t$ 和 $\tilde{\beta}_t$ 对结果影响不大。
+
+由于逆向方差并不出现在 $L_{\text{simple}}$ 中，为了使逆向方差能较好优化，通过额外输出向量在 $\beta_t$ 和 $\tilde{\beta}_t$ 之间插值，并重新引入原始优化目标 $L_{\text{vlb}}$ 。
+
+最终逆向方差表示如下。
+
+$$
+\Sigma_\theta(x_t,t)=\exp(v\log\beta_t+(1-v)\log\tilde{\beta}_t)
+$$
+
+优化目标如下。
+
+$$
+L_{\text{hybrid}}=L_{\text{simple}}+\lambda L_{\text{vlb}}
+$$
+
+**噪声策略**：DDPM中直接根据 $x_0$ 建模 $x_t$ ，但由于 $\bar{\alpha}_t$ 关于时间并不是线性，使得中间噪声程度的图像较少，未必能得到较好的训练和拟合。作者根据 $\bar{\alpha}_t$ 的形状改进如下。
+
+$$
+\bar{\alpha}_t=\frac{f(t)}{f(0)},\ f(t)=\cos\left(\frac{t/T+s}{1+s}\cdot\frac{\pi}{2}\right)^2
+$$
+
+令 $\beta_t=1-\frac{\bar{\alpha}_t}{\bar{\alpha}_{t-1}}$ ，限制 $\beta$ 上限不超过 0.999 以避免当 $t=T$ 时出现奇异情况、通过增加偏置 $s$ 使 $t=0$ 附近能产生噪声。
+
+通过余弦噪声策略，使得 $\bar{\alpha}_t$ 在时间维度上趋近线性衰减，从而能提供各维度的噪声等级。
+
+**梯度噪声**：作者尝试直接优化 $L_{\text{vlb}}$ ，但结果不如优化 $L_{\text{gybrid}}$ ，作者假设是 $L_{\text{vlb}}$ 的梯度随时间变化很大，从而通过每次均匀采样一个时间样本导致的损失方差很大，从而优化的波动很大。因而提出重要性采样，在训练过程中，首先使用均匀采样，直到每个时刻得到10个样本值，此后维持每个时刻最近的10个样本，并基于平均损失进行重要性采样。
+
+$$
+L_{\text{vlb}}=E_{t\sim p_t}\left[\frac{L_t}{p_t}\right],\ \text{where}\ p_t\propto \sqrt{E[L_t^2]}\  \text{and}\ \sum p_t=1
+$$
+
+**加速采样**：与DDIM重构了逆向过程形式不同，作者直接采样时间维度子集 $S$ ，构造子集时刻的逆向过程如下。
+
+$$
+\beta_{S_t}=1-\frac{\bar{\alpha}_{S_t}}{\bar{\alpha}_{S_{t-1}}},\ \tilde{\beta}_{S_t}=\frac{1-\bar{\alpha}_{S_{t-1}}}{1-\bar{\alpha}_{S_t}}\beta_{S_t}
+$$
+
+可学习方差随着 $\beta_t$ 和 $\tilde{\beta}_t$ 的变化而变化，不需要特殊处理。
 
 ## Diffusion beats GAN
 
