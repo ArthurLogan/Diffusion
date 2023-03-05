@@ -2,6 +2,21 @@
 
 学习笔记
 
+## Notes
+
+Blog：[What Makes a (Graphics) Systems Paper Beautiful](https://graphics.stanford.edu/~kayvonf/notes/systemspaper/)
+
+如何做出一项有意义的工作，需要思考和考虑以下几点。
+
+* 这项工作是基于一组有意义的目标和限制
+
+* 这项工作的核心见解和组织原则
+
+* 这项工作是在设定情境和限制下较为简洁可实现的
+
+* 这项工作提出的观点有助于实现目标（比如通过控制变量，结果有所差异）
+
+* 这项工作对领域和社区提供了新的观点
 
 
 ## Basic Idea
