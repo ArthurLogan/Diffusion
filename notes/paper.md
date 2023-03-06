@@ -21,19 +21,23 @@ Blog：[What Makes a (Graphics) Systems Paper Beautiful](https://graphics.stanfo
 |                            Paper                             | Application |
 | :----------------------------------------------------------: | :---------: |
 | Deep Unsupervised Learning using Nonequilibrium Thermodynamics |     ML      |
+| Generative Modeling by Estimating Gradients of the Data Distribution |     CV      |
 |                                                              |             |
-|                                                              |             |
 
 
 
-## ML
+## Diffusion
 
 Paper: [Deep Unsupervised Learning using Nonequilibrium Thermodynamics](https://arxiv.org/abs/1503.03585)
 
-1. Base：概率模型通常受限于可操作性(tractability)和复杂性(flexibility)的权衡，复杂模型难以调整和采样，可操作模型难以拟合复杂的数据分布。
+1. Base：概率模型通常受限于可操作性(tractability)和复杂性(flexibility)的权衡，复杂模型难以调整和采样，可操作模型难以拟合复杂分布。
 
 2. Insights：通过蒙特卡洛过程定义了一组概率模型，将可操作性强和复杂性高的概率模型之间建立可操作地过渡，从而实现采样过程（拟合分布后采样）、条件后验（将数据分布和其他信息结合）。
 3. Interesting Ideas：
-   1. 始终存在Diffusion过程能将单峰的高斯分布过渡到任意平滑的数据分布上
-   2. 如何设定分部Diffusion速度 $\beta_t$ ，作者通过在ELBO上梯度上升去调整。
+   1. 始终存在Diffusion过程能将单峰的高斯分布过渡到任意平滑的数据分布上(Q)
+   2. 如何设定分部Diffusion速度 $\beta_t$ ，作者通过在ELBO上使用梯度上升学习
+   3. 将整体后验分布转化成Diffusion过程每一步施加抖动(Q)
 
+Paper: [Generative Modeling by Estimating Gradients of the Data Distribution](https://arxiv.org/abs/1907.05600)
+
+1. 
