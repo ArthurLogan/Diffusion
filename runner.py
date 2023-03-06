@@ -7,7 +7,7 @@ import glob
 
 from model import UNet
 from diffusion import DiffusionTrainer, DiffusionSampler
-from loader import load_dataset, save_dataset
+from loader import load_dataset
 from scheduler import WarmUpScheduler
 from utils import inverse_data_transform
 
@@ -22,16 +22,17 @@ def train(args):
     # device
     device = torch.device(args.device)
     # dataset
-    dataset, dataloader = load_dataset(args)
+    train_data, train_loader = load_dataset(args)
+    print(f"train {len(train_data)}")
 
     # model
     net = UNet(T=args.T, ch=args.channel, ch_mult=args.channel_mult, attn=args.attn,
                     num_res_blocks=args.num_res_blocks, dropout=args.dropout).to(device)
-    if not os.path.exists(args.checkpoint_dir):
-        os.makedirs(args.checkpoint_dir)
-    if args.checkpoint_name is not None:
-        net.load_state_dict(torch.load(os.path.join(
-            args.checkpoint_dir, args.checkpoint_name), map_location=device))
+    
+    # ckpt
+    os.makedirs(args.ckpt_dir, exist_ok=True)
+    if args.ckpt_name is not None:
+        net.load_state_dict(torch.load(f"{args.ckpt_dir}/{args.ckpt_name}", map_location=device))
 
     # optimizer
     optimizer = torch.optim.AdamW(
