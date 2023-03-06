@@ -5,5 +5,7 @@ __pycache__/
 datasets/
 env/
 checkpoints/
+ckpt/
 test/
+log/
 samples/
