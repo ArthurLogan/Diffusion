@@ -40,9 +40,9 @@ python train.py --state eval --checkpoint_name ckpt_399_.pt
 
 ## 相关库
 
-通过requirements.txt维护，通过如下命令安装相关库。
+通过Anaconda3维护环境，需要安装conda环境后，通过如下命令安装环境。
 
-```shell
-python -m pip install -r requirements.txt
+```bash
+conda env create -f environment.yml
 ```
 
